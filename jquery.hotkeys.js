@@ -41,7 +41,20 @@
 			//and support data objects
 			keys = (handleObj.namespace || "").toLowerCase().split(" ");
 			keys = jQuery.map(keys, function(key) { return key.split("."); });
-
+			keys = jQuery.map(keys, function(key) {
+			    //Added unicode support to work with special character
+                //Added range support as a replacement for a serial of characters
+                if (key.indexOf('0x') === 0) {
+                    return String.fromCharCode(key);
+                }
+                if (key.indexOf('-', 1) >= 0) {
+                    for (var arr = [], b = key.indexOf('-'), idx = key.charCodeAt(0), end = key.charCodeAt(b + 1); idx <= end; ++idx) {
+                        arr.push(String.fromCharCode(idx));
+                    }
+                    return arr;
+                }
+                return key;
+            });
 		//no need to modify handler if no keys specified
 		//Added keys[0].substring(0, 12) to work with jQuery ui 1.9.0
 		//Added accordion, tabs and menu, then jquery ui can use keys.
@@ -97,12 +110,12 @@
 					possible[ jQuery.hotkeys.shiftNums[ character ] ] = true;
 				}
 			}
-
-			for ( var i = 0, l = keys.length; i < l; i++ ) {
-				if ( possible[ keys[i] ] ) {
-					return origHandler.apply( this, arguments );
-				}
-			}
+            for ( var i = 0, l = keys.length; i < l; i++ ) {
+                if ( possible[ keys[i] ] ) {
+                    [].unshift.call( arguments, keys[i] );
+                    return origHandler.apply( this, arguments );
+                }
+            }
 		};
 	}
 
